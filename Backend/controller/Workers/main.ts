@@ -44,7 +44,7 @@ const runWorker = (workerData) => {
   console.log('All scraping completed:');
   console.log(JSON.stringify(mergedResults, null, 2));
   try {
-      // Convert JSON to CSV
+
       const fields = [
         'restaurantName',
         'overallRating',

@@ -1,6 +1,4 @@
 import { Worker } from 'worker_threads';
-import fs from 'fs';
-import { parse } from 'json2csv';
 import path from 'path';
 
 
@@ -40,37 +38,6 @@ const runWorker = (workerData) => {
 
   // Merge results from all workers
   const mergedResults = results.flat();
-  
-  console.log('All scraping completed:');
-  console.log(JSON.stringify(mergedResults, null, 2));
-  try {
-      // Convert JSON to CSV
-      const fields = [
-        'restaurantName',
-        'overallRating',
-        'totalRating',
-        'deliveryRating',
-        'totalDeliveryRating',
-        'openTime',
-        'phoneNumber',
-        'address',
-        'url',
-        'underFour',
-        'fourToSeven',
-        'aboveSeven'
-      ];
-      const opts = { fields };
-      const csv = parse(mergedResults, opts);
-  
-      // Save the CSV to a file
-      const random = Math.floor(Math.random() * 1000000);
-      const filePath = `./output-${random}.csv`;
-      fs.writeFileSync(filePath, csv);
-         return results;
-      console.log(`CSV file successfully saved to ${filePath}`);
-    } catch (err) {
-      console.error('Error while converting JSON to CSV:', err);
-    }
   return mergedResults;
 };
 

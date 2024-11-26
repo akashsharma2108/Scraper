@@ -29,7 +29,7 @@ const runWorker = (workerData) => {
   });
 };
 
- const main = async (restaurantLinks) => {
+ const main = async (restaurantLinks , multicitiy, filename) => {
   const numWorkers = 4; // Adjust based on available resources
   const chunks = splitArray(restaurantLinks, numWorkers);
 
@@ -38,27 +38,42 @@ const runWorker = (workerData) => {
   const promises = chunks.map((chunk) => runWorker(chunk));
   const results = await Promise.all(promises);
 
-  // Merge results from all workers
+
   const mergedResults = results.flat();
   
   console.log('All scraping completed:');
   console.log(JSON.stringify(mergedResults, null, 2));
   try {
+    const fields = [
+      'restaurantName',
+      'overallRating',
+      'totalRating',
+      'deliveryRating',
+      'totalDeliveryRating',
+      'openTime',
+      'phoneNumber',
+      'address',
+      'url',
+      'underFour',
+      'fourToSeven',
+      'aboveSeven',
+    ];
 
-      const fields = [
-        'restaurantName',
-        'overallRating',
-        'totalRating',
-        'deliveryRating',
-        'totalDeliveryRating',
-        'openTime',
-        'phoneNumber',
-        'address',
-        'url',
-        'underFour',
-        'fourToSeven',
-        'aboveSeven'
-      ];
+   if(multicitiy){
+      const opts = { fields };
+      const csv = parse(mergedResults, opts); 
+  
+      // Save the CSV to a file
+      const filePath = `./output-${filename}.csv`;
+      //check if file exists if it does then append the data to the file
+      if (fs.existsSync(filePath)) {
+        fs.appendFileSync(filePath , csv);
+      } else {
+        fs.writeFileSync(filePath, csv);
+      }
+
+      return results;
+   }else{   
       const opts = { fields };
       const csv = parse(mergedResults, opts);
   
@@ -66,11 +81,12 @@ const runWorker = (workerData) => {
       const random = Math.floor(Math.random() * 1000000);
       const filePath = `./output-${random}.csv`;
       fs.writeFileSync(filePath, csv);
-         return results;
-      console.log(`CSV file successfully saved to ${filePath}`);
+         return results;}
     } catch (err) {
       console.error('Error while converting JSON to CSV:', err);
     }
+
+
   return mergedResults;
 };
 

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Input } from "./components/ui/input"
 import { Button } from "./components/ui/button"
+import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group"
+import { Label } from "./components/ui/label"
 import {
   Table,
   TableBody,
@@ -13,6 +15,7 @@ import { Loader2 } from 'lucide-react'
 
 type Restaurant = {
   restaurantName: string;
+  city: string;
   overallRating: string;
   totalRating: string;
   deliveryRating: string;
@@ -28,6 +31,7 @@ type Restaurant = {
 
 export default function Home() {
   const [restroName, setRestroName] = useState('')
+  const [currentLocation, setCurrentLocation] = useState('false')
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState<Restaurant[] | null>(null)
 
@@ -39,7 +43,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ restroName }),
+        body: JSON.stringify({ restroName, currentLocation }),
       })
       const result = await response.json()
       setData(result.flat())
@@ -55,6 +59,7 @@ export default function Home() {
 
     const headers = [
       'Restaurant Name',
+      'City',
       'Overall Rating',
       'Total Rating',
       'Delivery Rating',
@@ -72,6 +77,7 @@ export default function Home() {
       headers.join(','),
       ...data.map(item => [
         item.restaurantName,
+        item.city,
         item.overallRating,
         item.totalRating,
         item.deliveryRating,
@@ -110,30 +116,44 @@ export default function Home() {
         <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
           Scrape your favorite restaurant
         </h1>
-        <div className="flex space-x-4">
-          <Input
-            type="text"
-            placeholder="Enter restaurant name"
-            value={restroName}
-            onChange={(e) => setRestroName(e.target.value)}
-            className="flex-grow"
-          />
-          <Button onClick={handleSearch} disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Searching...
-              </>
-            ) : (
-              'Search'
-            )}
-          </Button>
+        <div className="space-y-4">
+          <div className="flex space-x-4">
+            <Input
+              type="text"
+              placeholder="Enter restaurant name"
+              value={restroName}
+              onChange={(e) => setRestroName(e.target.value)}
+              className="flex-grow"
+            />
+            <Button onClick={handleSearch} disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                'Search'
+              )}
+            </Button>
+          </div>
+          <RadioGroup defaultValue="false" onValueChange={setCurrentLocation} className="flex space-x-4">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="true" id="current-location" />
+              <Label htmlFor="current-location">Current Location Only</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="false" id="all-cities" />
+              <Label htmlFor="all-cities">All Major Cities in India</Label>
+            </div>
+          </RadioGroup>
         </div>
 
         {isLoading && (
           <div className="text-center text-gray-600">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-            Processing data...
+            {currentLocation === 'true' 
+              ? 'Scraping data for your current location...' 
+              : 'Scraping data for major cities in India... might take a while'}
           </div>
         )}
 
@@ -144,6 +164,7 @@ export default function Home() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Restaurant Name</TableHead>
+                    <TableHead>City</TableHead>
                     <TableHead>Overall Rating</TableHead>
                     <TableHead>Total Rating</TableHead>
                     <TableHead>Delivery Rating</TableHead>
@@ -161,6 +182,7 @@ export default function Home() {
                   {data.map((item, index) => (
                     <TableRow key={index}>
                       <TableCell>{item.restaurantName}</TableCell>
+                      <TableCell>{item.city}</TableCell>
                       <TableCell>{item.overallRating}</TableCell>
                       <TableCell>{item.totalRating}</TableCell>
                       <TableCell>{item.deliveryRating}</TableCell>

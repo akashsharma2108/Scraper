@@ -145,7 +145,7 @@ const getRestroData = async (restroName) => {
     console.log(`Found ${restaurantLinks.length} ${restroName} restaurants. Here are the links: `, restaurantLinks); 
       await browser.close();
       
-        const data = await main(restaurantLinks);
+        const data = await main(restaurantLinks , false, '');
         return data;
 };
 

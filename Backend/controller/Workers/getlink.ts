@@ -7,7 +7,7 @@ import { exit } from 'process';
 const getRestroData = async (restroName) => {
 
     const browser = await puppeteer.launch({
-        headless: false, // Set to false for debugging
+        headless: true, // Set to false for debugging
         args: ["--disable-http2"],
       });
       const page = await browser.newPage();

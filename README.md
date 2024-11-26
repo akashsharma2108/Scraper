@@ -66,10 +66,13 @@ If you only want to run the backend, follow these steps:
    ```bash
    curl -X POST http://localhost:4000/api/scrapedata    -H "Content-Type: application/json"    -d '{
        "restroName": "chowman"
+       "currentLocation" : "false" 
    }'
    ```
 
 Replace `"chowman"` with the name of your desired restaurant.  
+Replace `"currentLocation"` to `"true"` if you want to see major city data.
+
 
 **Note:** You can also send POST requests using Postman.  
 

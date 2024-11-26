@@ -4,7 +4,7 @@ import getallrestodata from '../Workers/getlinkforindia';
 
 
 export const Scrapper = async (req : express.Request, res : express.Response) => {
-  const { restroName , currentlocation } = req.body;
+  const { restroName , currentLocation } = req.body;
 
   if (!restroName) {
     return res.status(400).json({ message: 'Please provide a restaurant name' });
@@ -59,8 +59,8 @@ function transformRestaurantData(data: Record<string, any>): Restaurant[] {
 
 
   try {
-    const data = currentlocation === 'true' ? await getRestroData(restroName) as any : await getallrestodata(restroName) as any;
-    const finaldata = currentlocation === 'true' ? data : transformRestaurantData(data);
+    const data = currentLocation === 'true' ? await getRestroData(restroName) as any : await getallrestodata(restroName) as any;
+    const finaldata = currentLocation === 'true' ? data : transformRestaurantData(data);
     if (!data || data.length === 0) {
       return res.status(404).json({ message: 'No data found' });
     }

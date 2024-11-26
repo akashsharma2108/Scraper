@@ -156,35 +156,17 @@ const getRestroDataq = async (restroName, cityName) => {
 
 // Array of cities
 const cityarray = [
-  "Mumbai", "ncr"
-];
-
-// Split the array into batches of 4 cities at a time
-
-// (async () => {
-//   const data = {};
-
-//   // Fetch restaurant links for all cities
-//   for (let i = 0; i < cityarray.length; i++) {
-//     const city = cityarray[i];
-//     const restaurantLinks = await getRestroDataq("subway", city);
-//     data[city] = restaurantLinks;
-//   }
-
-//   // Final result aggregation
-//   let finaldata = {};
-//   for (const city in data) {
-//     const restaurantLinks = data[city];
-
-//     // Call the main function for each city's restaurant links
-//     const cityData = await main(restaurantLinks, true, `${city}-data`);
-//     finaldata[city] = cityData; // Store the result for each city
-//   }
-
-//   // Log the final data for all cities
-//   console.log("Final Aggregated Data:", finaldata);
-// })();;
-
+  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad", 
+  "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", 
+  "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", 
+  "Bhopal", "Visakhapatnam", "Pimpri-Chinchwad", "Patna", "Vadodara", 
+  "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad", 
+  "Meerut", "Rajkot", "Kalyan-Dombivali", "Vasai-Virar", "Varanasi", 
+  "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai", 
+  "Prayagraj", "Howrah", "Ranchi", "Jabalpur", "Gwalior", 
+  "Coimbatore", "Vijayawada", "Jodhpur", "Madurai", "Raipur", 
+  "Kota"
+]
 
 const getallrestodata = async (restroName) => {
   const randomfilenameString = Math.random().toString(36).substring(7);

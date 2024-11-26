@@ -28,7 +28,6 @@ const getRestroData = async (restroName) => {
         exit();
       }
     
-      // Handle cookies popup
       try {
         await page.waitForSelector("button[aria-label='Accept cookies']", { timeout: 1000 });
         await page.click("button[aria-label='Accept cookies']");
@@ -37,16 +36,15 @@ const getRestroData = async (restroName) => {
         console.log("No cookie popup found");
       }
     
-      // Search for "Subway" in Bengaluru
+  
       await page.click("input[placeholder='Search for restaurant, cuisine or a dish']");
       await page.keyboard.type(restroName);
       await page.keyboard.press("Enter");
-    let url ;
     try {
         await page.waitForSelector('div.sc-dTsoBL.kLpknk button span.sc-1kx5g6g-3.dkwpEa');
         console.log("'View all Delivery outlets' button found");
         let clickedPrimary = false;
-        const buttons = await page.$$("button");
+        const buttons = await page.$$("button"); 
         
         for (const button of buttons) {
             const text = await page.evaluate(el => el.textContent.trim(), button);
@@ -107,13 +105,13 @@ const getRestroData = async (restroName) => {
       try {
         let previousHeight = 0;
         while (true) {
-          previousHeight = await page.evaluate(() => document.body.scrollHeight);
-          await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+          previousHeight = await page.evaluate(() => document.body.scrollHeight); 
+          await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); 
           console.log("Scrolling down...");
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 2000)); 
           const newLinks = await page.evaluate(() => {
             const cards = document.querySelectorAll(".sc-1mo3ldo-0 a");
-            return Array.from(cards).map((card : any)  => card.href)
+            return Array.from(cards).map((card : any)  => card.href) 
           });
           restaurantLinks = [...new Set([...restaurantLinks, ...newLinks])];
           console.log(`Loaded ${restaurantLinks.length} links so far...`);
@@ -126,15 +124,24 @@ const getRestroData = async (restroName) => {
       } catch (err) {
         console.error("Error during scrolling or loading:", err.message);
       }
-       //filter anything with restaurants
        console.log('Filtering restaurant links', restaurantLinks);
-       restroName = restroName.trim(); // Remove any leading/trailing spaces
-
-       restaurantLinks = restaurantLinks.filter(link => 
-           link.toLowerCase().includes(restroName.toLowerCase()) && // Check for restaurant name match
-           link !== url && // Exclude the specific URL
-           !link.toLowerCase().includes('restaurants') // Exclude links containing "restaurants"
-       );
+       restroName = restroName.trim();
+         console.log('RestroName', page.url());
+         const mainurl = page.url();
+          const restroNameArray = mainurl.split('/');
+          console.log('RestroNameArray', restroNameArray);
+          restroName = restroNameArray[5];
+          if (restroName) {
+            restroName = restroName.split('?')[0]; 
+        }
+          restaurantLinks = restaurantLinks.filter((link) => link.includes(restroName) && link !== mainurl);
+          restaurantLinks = restaurantLinks.map(link => {
+            if (link.includes('/order') || link.includes('/info')) {
+                return link.split('/').slice(0, -1).join('/');
+            }
+            return link; 
+        });
+         
     console.log(`Found ${restaurantLinks.length} ${restroName} restaurants. Here are the links: `, restaurantLinks); 
       await browser.close();
       

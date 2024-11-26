@@ -36,9 +36,20 @@ const getRestroDataq = async (restroName, cityName) => {
     console.log("No cookie popup found");
   }
 
-  await page.click("input[placeholder='Search for restaurant, cuisine or a dish']");
-  await page.keyboard.type(restroName);
-  await page.keyboard.press("Enter");
+  // await page.click("input[placeholder='Search for restaurant, cuisine or a dish']");
+  // await page.keyboard.type(restroName);
+  // await page.keyboard.press("Enter");
+  try {
+    await page.waitForSelector('input[placeholder="Search for restaurant, cuisine or a dish"]', { timeout: 2000 });
+    await page.click('input[placeholder="Search for restaurant, cuisine or a dish"]');
+    await page.keyboard.type(restroName);
+    await page.keyboard.press("Enter");
+    console.log("Entered restaurant name and pressed Enter");
+  } catch (err) {
+    console.error("Failed to enter restaurant name:", err.message);
+    await browser.close();
+    process.exit();
+  }
 
   try {
     await page.waitForSelector('div.sc-hMjcWo.Kwshw button span.sc-1kx5g6g-3.dkwpEa');
@@ -152,21 +163,19 @@ const getRestroDataq = async (restroName, cityName) => {
 };
 
 
+const cityarray =  [
+  "mumbai", "ncr", "bangalore", "hyderabad", "ahmedabad", 
+  "chennai", "kolkata", "surat", "pune", "jaipur", 
+  "lucknow", "kanpur", "nagpur", "indore", 
+  "bhopal", "visakhapatnam", "patna", "vadodara", 
+   "ludhiana", "agra", "nashik",
+  "meerut", "rajkot", "varanasi", 
+  "srinagar", "aurangabad", "dhanbad", "amritsar",
+   "ranchi", "jabalpur", "gwalior", 
+  "coimbatore", "vijayawada", "jodhpur", "madurai", "raipur", 
+  "kota"
+];
 
-
-// Array of cities
-const cityarray = [
-  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad", 
-  "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", 
-  "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", 
-  "Bhopal", "Visakhapatnam", "Pimpri-Chinchwad", "Patna", "Vadodara", 
-  "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad", 
-  "Meerut", "Rajkot", "Kalyan-Dombivali", "Vasai-Virar", "Varanasi", 
-  "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai", 
-  "Prayagraj", "Howrah", "Ranchi", "Jabalpur", "Gwalior", 
-  "Coimbatore", "Vijayawada", "Jodhpur", "Madurai", "Raipur", 
-  "Kota"
-]
 
 const getallrestodata = async (restroName) => {
   const randomfilenameString = Math.random().toString(36).substring(7);

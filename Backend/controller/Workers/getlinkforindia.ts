@@ -48,7 +48,7 @@ const getRestroDataq = async (restroName, cityName) => {
   } catch (err) {
     console.error("Failed to enter restaurant name:", err.message);
     await browser.close();
-    process.exit();
+     return [];
   }
 
   try {
@@ -100,6 +100,7 @@ const getRestroDataq = async (restroName, cityName) => {
     } catch (fallbackErr) {
       console.error("Error with fallback button:", fallbackErr.message);
       await browser.close();
+      return [];
     }
   }
 
@@ -110,7 +111,7 @@ const getRestroDataq = async (restroName, cityName) => {
   } catch (err) {
     console.error("Failed to load restaurant cards:", err.message);
     await browser.close();
-    process.exit();
+    return [];
   }
 
   let restaurantLinks = [];
@@ -135,6 +136,7 @@ const getRestroDataq = async (restroName, cityName) => {
     }
   } catch (err) {
     console.error("Error during scrolling or loading:", err.message);
+    return [];
   }
 
   console.log('Filtering restaurant links', restaurantLinks);
@@ -169,7 +171,7 @@ const cityarray =  [
   "lucknow", "kanpur", "nagpur", "indore", 
   "bhopal", "visakhapatnam", "patna", "vadodara", 
    "ludhiana", "agra", "nashik",
-  "meerut", "rajkot", "varanasi", 
+  "meerut", "varanasi", 
   "srinagar", "aurangabad", "dhanbad", "amritsar",
    "ranchi", "jabalpur", "gwalior", 
   "coimbatore", "vijayawada", "jodhpur", "madurai", "raipur", 

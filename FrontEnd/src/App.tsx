@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from "./components/ui/input"
 import { Button } from "./components/ui/button"
 import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group"
 import { Label } from "./components/ui/label"
+import { Switch } from "./components/ui/switch"
 import {
   Table,
   TableBody,
@@ -12,6 +13,13 @@ import {
   TableRow,
 } from "./components/ui/table"
 import { Loader2 } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./components/ui/select"
 
 type Restaurant = {
   restaurantName: string;
@@ -29,11 +37,33 @@ type Restaurant = {
   url: string;
 }
 
+const cities = [
+  "agra", "ahmedabad", "ajmer", "alappuzha", "allahabad", "amravati", "amritsar", "aurangabad",
+  "bangalore", "bhopal", "bhubaneswar", "chandigarh", "chennai", "coimbatore", "cuttack",
+  "darjeeling", "dehradun", "ncr", "dharamshala", "gangtok", "goa", "gorakhpur", "guntur",
+  "guwahati", "gwalior", "haridwar", "hyderabad", "indore", "jabalpur", "jaipur", "jalandhar",
+  "jammu", "jamnagar", "jamshedpur", "jhansi", "jodhpur", "junagadh", "kanpur", "khajuraho",
+  "khamgaon", "kharagpur", "kochi", "kolhapur", "kolkata", "kota", "lucknow", "ludhiana",
+  "madurai", "manali", "mangalore", "manipal", "meerut", "mumbai", "mussoorie", "mysore",
+  "nagpur", "nainital", "nashik", "neemrana", "ooty", "palakkad", "patiala", "patna",
+  "puducherry", "pune", "pushkar", "raipur", "rajkot", "ranchi", "rishikesh", "salem",
+  "shimla", "siliguri", "srinagar", "surat", "thrissur", "tirupati", "trichy", "trivandrum",
+  "udaipur", "vadodara", "varanasi", "vellore", "vijayawada", "visakhapatnam"
+]
+
 export default function Home() {
-  const [restroName, setRestroName] = useState('')
+  const [restroName, setRestroName] = useState('burger king')
   const [currentLocation, setCurrentLocation] = useState('false')
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState<Restaurant[] | null>(null)
+  const [inDepthSearch, setInDepthSearch] = useState(false)
+  const [selectedCity, setSelectedCity] = useState('bangalore')
+
+  useEffect(() => {
+    if (inDepthSearch) {
+      setCurrentLocation('false')
+    }
+  }, [inDepthSearch])
 
   const handleSearch = async () => {
     setIsLoading(true)
@@ -43,7 +73,12 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ restroName, currentLocation }),
+        body: JSON.stringify({ 
+          restroName, 
+          currentLocation, 
+          inDepth: inDepthSearch.toString(),
+          cityName: inDepthSearch ? selectedCity : ''
+        }),
       })
       const result = await response.json()
       setData(result.flat())
@@ -118,6 +153,24 @@ export default function Home() {
         </h1>
         <div className="space-y-4">
           <div className="flex space-x-4">
+            {inDepthSearch && (
+              <Select value={selectedCity} onValueChange={setSelectedCity}>
+                <SelectTrigger className="w-[180px]" style={{
+                  backgroundColor: 'white',
+                }}>
+                  <SelectValue placeholder="Select a city" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] overflow-y-auto" style={{
+                  backgroundColor: 'white',
+                }}>
+                  {cities.map((city) => (
+                    <SelectItem key={city} value={city} className="capitalize">
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <Input
               type="text"
               placeholder="Enter restaurant name"
@@ -136,30 +189,60 @@ export default function Home() {
               )}
             </Button>
           </div>
-          <RadioGroup defaultValue="false" onValueChange={setCurrentLocation} className="flex space-x-4">
+          <div className="flex items-center space-x-4">
+            <RadioGroup 
+              value={currentLocation} 
+              onValueChange={setCurrentLocation} 
+              className="flex space-x-4"
+              disabled={inDepthSearch}
+              style={{
+                display: inDepthSearch ? 'none' : '',
+              }}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="true" id="current-location" />
+                <Label htmlFor="current-location" className="text-sm font-medium">
+                  Current Location Only
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="false" id="all-cities" />
+                <Label htmlFor="all-cities" className="text-sm font-medium">
+                  All Major Cities in India
+                </Label>
+              </div>
+            </RadioGroup>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="true" id="current-location" />
-              <Label htmlFor="current-location">Current Location Only</Label>
+              <Switch
+                id="in-depth-search"
+                checked={inDepthSearch}
+                onCheckedChange={setInDepthSearch}
+              />
+              <Label htmlFor="in-depth-search" className="text-sm font-medium">
+                In-Depth Search
+              </Label>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="false" id="all-cities" />
-              <Label htmlFor="all-cities">All Major Cities in India</Label>
-            </div>
-          </RadioGroup>
+          </div>
         </div>
 
         {isLoading && (
           <div className="text-center text-gray-600">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+            <Loader2 className="h-8 w-4 animate-spin mx-auto mb-2" />
             {currentLocation === 'true' 
               ? 'Scraping data for your current location...' 
-              : 'Scraping data for major cities in India... might take a while'}
+              : `Scraping data ${inDepthSearch ? " of " + restroName + " in " + selectedCity   : "for major cities in India"}... might take a while`}
+            <p>Please complete any reCAPTCHA in the test browser if prompted.</p>
           </div>
         )}
 
         {data && (
           <>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" 
+            style={{
+              width: '100%',
+              maxWidth: 'calc(100vw - 4rem)',
+            }}
+            >
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -205,7 +288,7 @@ export default function Home() {
             </div>
             <div className="flex justify-center space-x-4 mt-4">
               <Button onClick={downloadCSV}>Download CSV</Button>
-              <Button onClick={transferToGoogleSheets}>Transfer to Google Sheets</Button>
+              <Button onClick={transferToGoogleSheets} disabled>Transfer to Google Sheets</Button>
             </div>
           </>
         )}

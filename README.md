@@ -67,11 +67,16 @@ If you only want to run the backend, follow these steps:
    curl -X POST http://localhost:4000/api/scrapedata    -H "Content-Type: application/json"    -d '{
        "restroName": "chowman"
        "currentLocation" : "false" 
+       "inDepth" : "true",
+       "cityName" : "ncr"
    }'
    ```
 
+
 Replace `"chowman"` with the name of your desired restaurant.  
 Replace `"currentLocation"` to `"true"` if you want to see major city data.
+make sure  `"currentLocation"` set to `"fasle"` when inDepth search is enable 
+Test browser will pop up if any reCAPTCHA is there be fill that 
 
 
 **Note:** You can also send POST requests using Postman.  

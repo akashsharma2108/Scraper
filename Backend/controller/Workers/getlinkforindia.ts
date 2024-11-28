@@ -25,7 +25,7 @@ const getRestroDataq = async (restroName, cityName) => {
   } catch (err) {
     console.error("Failed to navigate to Zomato:", err.message);
     await browser.close();
-    process.exit();
+    return [];
   }
 
   try {
@@ -179,8 +179,9 @@ const cityarray =  [
 ];
 
 
-const getallrestodata = async (restroName) => {
+const getallrestodata = async (restroName, userName) => {
   const randomfilenameString = Math.random().toString(36).substring(7);
+  const userfilename = `${userName}-${randomfilenameString}`;
   const data = {};
   for (let i = 0; i < cityarray.length; i++) {
     const city = cityarray[i];
@@ -191,7 +192,7 @@ const getallrestodata = async (restroName) => {
   let finaldata = {};
   for (const city in data) {
     const restaurantLinks = data[city];
-    const cityData = await main(restaurantLinks, true, `${randomfilenameString}-data`);
+    const cityData = await main(restaurantLinks, true, userfilename, false, false);
     finaldata[city] = cityData;
   }
 

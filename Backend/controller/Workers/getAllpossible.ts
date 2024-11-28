@@ -6,7 +6,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 puppeteer.use(StealthPlugin());
 
 
-const getAllpossible = async (restroName, cityName) => {
+const getAllpossible = async (restroName, cityName, userName , bothRestro) => {
   let outletAddressesss = [];
   
   if (restroName.split(' ').length > 1) {
@@ -79,8 +79,8 @@ const getAllpossible = async (restroName, cityName) => {
 
         console.log('Filtering restaurant links', outletAddressesss);
       outletAddressesss = outletAddressesss.filter((link) => link.includes(restroName));
-       const data = await main(outletAddressesss , false, '');
-      return data;
+       const data = bothRestro ? outletAddressesss : await main(outletAddressesss , false, userName, false , false);
+      return  data;
 };
 
 // Example usage

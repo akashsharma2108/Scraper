@@ -2,10 +2,12 @@ import express from 'express';
 import  getRestroData  from '../Workers/getlink';
 import getallrestodata from '../Workers/getlinkforindia';
 import getAllpossible from '../Workers/getAllpossible';
+import getBothscaperdata from '../Workers/getBothscaperdata';
+import getSwiggydata from '../Workers/getSwiggydata';
 
 
 export const Scrapper = async (req : express.Request, res : express.Response) => {
-  const { restroName , currentLocation , inDepth , cityName } = req.body;
+  const { restroName , currentLocation , inDepth , cityName, userName , restroType } = req.body;
 
   if (!restroName) {
     return res.status(400).json({ message: 'Please provide a restaurant name' });
@@ -151,7 +153,30 @@ function transformRestaurantData(data: Record<string, any>): Restaurant[] {
     }
 
   try {
-    const data = inDepth ==='true' ? await getAllpossible(restroName, cityName) : currentLocation === 'true' ? await getRestroData(restroName) as any : await getallrestodata(restroName) as any;
+    let data: any;
+
+    switch (true) {
+      case inDepth === 'true' && restroType === 'both':
+        data = await getBothscaperdata(restroName, cityName, userName);
+        break;
+    
+      case inDepth === 'true' && restroType === 'zomato':
+        data = await getAllpossible(restroName, cityName, userName, false);
+        break;
+
+      case inDepth === 'true' && restroType === 'swiggy':
+        data = await getSwiggydata(restroName, cityName, userName, false);
+        break;
+    
+      case currentLocation === 'true':
+        data = await getRestroData(restroName, userName);
+        break;
+    
+      default:
+        data = await getallrestodata(restroName, userName);
+        break;
+    }
+    
     const finaldata =inDepth ==='false' && currentLocation === 'false' ? transformRestaurantData(data) : data ;
     if (!data || data.length === 0) {
       return res.status(404).json({ message: 'No data found' });

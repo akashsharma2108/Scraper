@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "./components/ui/table"
-import { Loader2 } from 'lucide-react'
+import { Loader2, Download } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -37,6 +37,12 @@ type Restaurant = {
   url: string;
 }
 
+type FileInfo = {
+  filename: string;
+  filetype: string;
+  blobdata: string;
+}
+
 const cities = [
   "agra", "ahmedabad", "ajmer", "alappuzha", "allahabad", "amravati", "amritsar", "aurangabad",
   "bangalore", "bhopal", "bhubaneswar", "chandigarh", "chennai", "coimbatore", "cuttack",
@@ -51,13 +57,29 @@ const cities = [
   "udaipur", "vadodara", "varanasi", "vellore", "vijayawada", "visakhapatnam"
 ]
 
+const restrotype = [
+  "both",
+  "swiggy",
+  "zomato"
+]
+
 export default function Home() {
+  const [userName, setUserName] = useState<string | null>(null)
   const [restroName, setRestroName] = useState('burger king')
-  const [currentLocation, setCurrentLocation] = useState('false')
+  const [currentLocation, setCurrentLocation] = useState('true')
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState<Restaurant[] | null>(null)
   const [inDepthSearch, setInDepthSearch] = useState(false)
   const [selectedCity, setSelectedCity] = useState('bangalore')
+  const [selectedRestroType, setSelectedRestroType] = useState('zomato')
+  const [files, setFiles] = useState<FileInfo[]>([])
+
+  useEffect(() => {
+    const storedUserName = localStorage.getItem('name')
+    if (storedUserName) {
+      setUserName(storedUserName)
+    }
+  }, [])
 
   useEffect(() => {
     if (inDepthSearch) {
@@ -67,6 +89,7 @@ export default function Home() {
 
   const handleSearch = async () => {
     setIsLoading(true)
+    setFiles([])
     try {
       const response = await fetch('http://localhost:4000/api/scrapedata', {
         method: 'POST',
@@ -77,7 +100,9 @@ export default function Home() {
           restroName, 
           currentLocation, 
           inDepth: inDepthSearch.toString(),
-          cityName: inDepthSearch ? selectedCity : ''
+          cityName: inDepthSearch ? selectedCity : '',
+          userName: localStorage.getItem('userName'),
+          restroType : selectedRestroType
         }),
       })
       const result = await response.json()
@@ -94,7 +119,7 @@ export default function Home() {
 
     const headers = [
       'Restaurant Name',
-      'City',
+      currentLocation === 'true' ?  'City' : null,
       'Overall Rating',
       'Total Rating',
       'Delivery Rating',
@@ -112,7 +137,7 @@ export default function Home() {
       headers.join(','),
       ...data.map(item => [
         item.restaurantName,
-        item.city,
+        currentLocation === 'true' ?  item.city : null,
         item.overallRating,
         item.totalRating,
         item.deliveryRating,
@@ -145,15 +170,89 @@ export default function Home() {
     console.log('Transferring to Google Sheets...')
   }
 
+  const handleNameSubmit = (name: string) => {
+    const userNameNoSpaces = name.replace(/\s+/g, '')
+    const uniqueUserName = `${userNameNoSpaces}${Math.random().toString(36).substr(2, 9)}`
+    
+    localStorage.setItem('name', name)
+    localStorage.setItem('userName', uniqueUserName)
+    setUserName(name)
+  }
+
+  const fetchAllFiles = async () => {
+    setIsLoading(true)
+    setData(null)
+    try {
+      const response = await fetch('http://localhost:4000/api/allcsvfiles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userName: localStorage.getItem('userName'),
+        }),
+      })
+      const result = await response.json()
+      setFiles(result)
+    } catch (error) {
+      console.error('Error fetching files:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const downloadFile = (file: FileInfo) => {
+    const content = atob(file.blobdata)
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', file.filename)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }
+
+  if (!userName) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+        <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            const nameInput = e.currentTarget.elements.namedItem('name') as HTMLInputElement
+            if (nameInput && nameInput.value.trim()) {
+              handleNameSubmit(nameInput.value.trim())
+            }
+          }} className="space-y-4">
+            <div>
+              <Label htmlFor="name" className="text-lg font-semibold">Enter your name</Label>
+              <Input
+                id="name"
+                type="text"
+                className="mt-1"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full">Next</Button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
       <div className="w-full max-w-7xl bg-white rounded-lg shadow-xl p-8 space-y-8">
         <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
-          Scrape your favorite restaurant
+          Welcome, {userName}! Scrape your favorite restaurant
         </h1>
         <div className="space-y-4">
           <div className="flex space-x-4">
             {inDepthSearch && (
+              <>
               <Select value={selectedCity} onValueChange={setSelectedCity}>
                 <SelectTrigger className="w-[180px]" style={{
                   backgroundColor: 'white',
@@ -170,6 +269,26 @@ export default function Home() {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select value={selectedRestroType} onValueChange={setSelectedRestroType}>
+                <SelectTrigger className="w-[180px]" style={{
+                  backgroundColor: 'white',
+                }}>
+                  <SelectValue placeholder="Select a city" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] overflow-y-auto" style={{
+                  backgroundColor: 'white',
+                }}>
+                  {restrotype.map((city) => (
+                    <SelectItem key={city} value={city} className="capitalize">
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              </>
+              
             )}
             <Input
               type="text"
@@ -187,6 +306,9 @@ export default function Home() {
               ) : (
                 'Search'
               )}
+            </Button>
+            <Button onClick={fetchAllFiles} disabled={isLoading}>
+              Fetch All Files
             </Button>
           </div>
           <div className="flex items-center space-x-4">
@@ -247,7 +369,7 @@ export default function Home() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Restaurant Name</TableHead>
-                    <TableHead>City</TableHead>
+                    {currentLocation === 'true'? <TableHead>City</TableHead> : null}
                     <TableHead>Overall Rating</TableHead>
                     <TableHead>Total Rating</TableHead>
                     <TableHead>Delivery Rating</TableHead>
@@ -265,7 +387,7 @@ export default function Home() {
                   {data.map((item, index) => (
                     <TableRow key={index}>
                       <TableCell>{item.restaurantName}</TableCell>
-                      <TableCell>{item.city}</TableCell>
+                     {currentLocation === 'true' ?   <TableCell>{item.city}</TableCell> : null}
                       <TableCell>{item.overallRating}</TableCell>
                       <TableCell>{item.totalRating}</TableCell>
                       <TableCell>{item.deliveryRating}</TableCell>
@@ -291,6 +413,34 @@ export default function Home() {
               <Button onClick={transferToGoogleSheets} disabled>Transfer to Google Sheets</Button>
             </div>
           </>
+        )}
+
+        {files.length > 0 && (
+          <div className="overflow-x-auto mt-8">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Filename</TableHead>
+                  <TableHead>File Type</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {files.map((file, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{file.filename}</TableCell>
+                    <TableCell>{file.filetype}</TableCell>
+                    <TableCell>
+                      <Button onClick={() => downloadFile(file)} size="sm">
+                        <Download className="mr-2 h-4 w-4" />
+                        Download
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </main>

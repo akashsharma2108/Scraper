@@ -1,10 +1,10 @@
 import puppeteer from 'puppeteer';
 import main from './main'
-import { exit } from 'process';
 
 
 
-const getRestroData = async (restroName) => {
+
+const getRestroData = async (restroName, userName) => {
 
     const browser = await puppeteer.launch({
         headless: true, // Set to false for debugging
@@ -25,7 +25,7 @@ const getRestroData = async (restroName) => {
       } catch (err) {
         console.error("Failed to navigate to Zomato:", err.message);
         await browser.close();
-        exit();
+        return [];
       }
     
       try {
@@ -98,7 +98,7 @@ const getRestroData = async (restroName) => {
       } catch (err) {
         console.error("Failed to load restaurant cards:", err.message);
         await browser.close();
-        exit();
+        return [];
       }
     
       let restaurantLinks = [];
@@ -145,7 +145,7 @@ const getRestroData = async (restroName) => {
     console.log(`Found ${restaurantLinks.length} ${restroName} restaurants. Here are the links: `, restaurantLinks); 
       await browser.close();
       
-        const data = await main(restaurantLinks , false, '');
+        const data = await main(restaurantLinks , false, userName, false, false);
         return data;
 };
 

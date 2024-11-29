@@ -147,10 +147,10 @@ function transformRestaurantData(data: Record<string, any>): Restaurant[] {
     return result;
 }
  
-    // check cityName is present in city array or not
-    if(cityName && !city.includes(cityName)){
+    if (cityName !== "delhi") {
+    if(cityName && !city.includes(cityName) ){
       return res.status(400).json({ message: 'Please provide a valid city name' });
-    }
+    } }
 
   try {
     let data: any;

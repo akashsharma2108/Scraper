@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 
 const scrapeRestaurant = async (url) => {
     const browser = await puppeteer.launch({
-      headless: false,
+      headless: true,
       args: ["--disable-http2", "--no-sandbox", "--disable-setuid-sandbox"],
     });
   

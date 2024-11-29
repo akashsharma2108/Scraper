@@ -10,7 +10,7 @@ const getSwiggydata = async (restroName, cityName, userName, bothRestro) => {
 
   console.log("Launching browser..." , restroName , cityName);
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ["--disable-http2"],
   });
   const page = await browser.newPage();

@@ -69,10 +69,11 @@ export default function Home() {
   const [currentLocation, setCurrentLocation] = useState('true')
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState<Restaurant[] | null>(null)
-  const [inDepthSearch, setInDepthSearch] = useState(false)
+  const [inDepthSearch, setInDepthSearch] = useState(true)
   const [selectedCity, setSelectedCity] = useState('bangalore')
   const [selectedRestroType, setSelectedRestroType] = useState('zomato')
   const [files, setFiles] = useState<FileInfo[]>([])
+  const [errors, setErrors] = useState('')
 
   useEffect(() => {
     const storedUserName = localStorage.getItem('name')
@@ -193,8 +194,12 @@ export default function Home() {
         }),
       })
       const result = await response.json()
+       if(result.message === "No CSV files found for the given userName"){
+        setErrors(result.message )
+      }
       setFiles(result)
     } catch (error) {
+
       console.error('Error fetching files:', error)
     } finally {
       setIsLoading(false)
@@ -357,6 +362,16 @@ export default function Home() {
           </div>
         )}
 
+        {isLoading && (
+          <div className="text-center text-gray-600">
+            <Loader2 className="h-8 w-4 animate-spin mx-auto mb-2" />
+            {currentLocation === 'true' 
+              ? 'Scraping data for your current location...' 
+              : `Scraping data ${inDepthSearch ? " of " + restroName + " in " + selectedCity   : "for major cities in India"}... might take a while`}
+            <p>Please complete any reCAPTCHA in the test browser if prompted.</p>
+          </div>
+        )}
+
         {data && (
           <>
             <div className="overflow-x-auto" 
@@ -415,7 +430,7 @@ export default function Home() {
           </>
         )}
 
-        {files.length > 0 && (
+        {files.length > 0 ? (
           <div className="overflow-x-auto mt-8">
             <Table>
               <TableHeader>
@@ -441,7 +456,11 @@ export default function Home() {
               </TableBody>
             </Table>
           </div>
-        )}
+        ) : 
+        <div className="text-center text-gray-600">
+          {errors}
+        </div>
+        }
       </div>
     </main>
   )

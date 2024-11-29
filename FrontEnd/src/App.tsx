@@ -91,6 +91,7 @@ export default function Home() {
   const handleSearch = async () => {
     setIsLoading(true)
     setFiles([])
+    setErrors('')
     try {
       const response = await fetch('http://localhost:4000/api/scrapedata', {
         method: 'POST',
@@ -101,7 +102,7 @@ export default function Home() {
           restroName, 
           currentLocation, 
           inDepth: inDepthSearch.toString(),
-          cityName: inDepthSearch ? selectedCity : '',
+          cityName: inDepthSearch ? selectedCity === "ncr" && selectedRestroType === "swiggy" ? "delhi" : selectedCity : '',
           userName: localStorage.getItem('userName'),
           restroType : selectedRestroType
         }),
@@ -183,6 +184,7 @@ export default function Home() {
   const fetchAllFiles = async () => {
     setIsLoading(true)
     setData(null)
+    setErrors('')
     try {
       const response = await fetch('http://localhost:4000/api/allcsvfiles', {
         method: 'POST',
@@ -362,16 +364,6 @@ export default function Home() {
           </div>
         )}
 
-        {isLoading && (
-          <div className="text-center text-gray-600">
-            <Loader2 className="h-8 w-4 animate-spin mx-auto mb-2" />
-            {currentLocation === 'true' 
-              ? 'Scraping data for your current location...' 
-              : `Scraping data ${inDepthSearch ? " of " + restroName + " in " + selectedCity   : "for major cities in India"}... might take a while`}
-            <p>Please complete any reCAPTCHA in the test browser if prompted.</p>
-          </div>
-        )}
-
         {data && (
           <>
             <div className="overflow-x-auto" 
@@ -456,7 +448,7 @@ export default function Home() {
               </TableBody>
             </Table>
           </div>
-        ) : 
+        ) : errors !== '' &&
         <div className="text-center text-gray-600">
           {errors}
         </div>
